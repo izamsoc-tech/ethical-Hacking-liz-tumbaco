@@ -1,0 +1,260 @@
+
+
+
+
+Actividad 02
+NMAP RECON CHALLENGE
+Escenario: scanme.nmap.org
+
+Liz Madelyne Tumbaco Peñafiel
+Hacker Woman Council - Ethical Hacking
+
+
+
+
+
+
+
+1.	Introducción. 
+Como parte de la actividad práctica NMAP Recon Challenge, se realizó un ejercicio de reconocimiento sobre el objetivo autorizado scanme.nmap.org, empleando comandos y técnicas incluidos en la Guía práctica NMAP – 100 comandos básicos e intermedios.
+
+La actividad estuvo orientada a aplicar de forma práctica diferentes capacidades de Nmap para identificar puertos abiertos, servicios disponibles, versiones de software e información adicional mediante scripts NSE. Asimismo, se utilizaron distintas opciones de escaneo con el propósito de comprender las diferencias entre cada técnica y analizar la información obtenida durante el reconocimiento.
+
+2.	Objetivo
+Para llevar a cabo un reconocimiento técnico educativo sobre el host autorizado scanme.nmap.org, se puede iniciar verificando la disponibilidad del objetivo mediante un escaneo de descubrimiento como nmap -sn scanme.nmap.org, el cual utiliza paquetes ICMP y TCP para confirmar que el sistema está activo sin realizar un mapeo exhaustivo de puertos. 
+
+Posteriormente, para identificar los puertos TCP abiertos, la razón del estado de cada puerto y las versiones de los servicios expuestos, se ejecuta el establecidos en la Guia de nmap. Finalmente, para profundizar en los servicios web y de acceso remoto, se emplean scripts del Nmap.
+
+3.	Alcance
+El alcance de la actividad se limitó exclusivamente al siguiente objetivo autorizado:
+
+Host: scanme.nmap.org
+Dirección IPv4 observada durante las pruebas: 45.33.32.156
+
+No se realizaron actividades de explotación, modificación de información, denegación de servicio ni acciones destinadas a obtener acceso no autorizado al sistema. Las pruebas realizadas se limitaron a reconocimiento, enumeración y análisis de la información proporcionada por Nmap.
+
+4.	Herramienta utilizada
+Para la ejecución de las pruebas se utilizó un entorno Linux con Nmap instalado.
+Durante las evidencias recopiladas se utilizó:
+•	Herramienta: Nmap
+•	Objetivo: scanme.nmap.org
+•	Fecha de ejecución: 20 de septiembre de 2026
+•	Tipo de actividad: Reconocimiento y enumeración
+
+
+
+
+5.	Desarrollo del reto
+5.1.	Identificación de servicios y versiones
+Inicialmente se realizó una detección de servicios mediante:
+nmap -sV scanme.nmap.org
+
+El escaneo permitió identificar cuatro puertos TCP abiertos:
+22/tcp – SSH
+80/tcp – HTTP
+9929/tcp – nping-echo
+31337/tcp
+
+Sobre los servicios principales se identificó:
+OpenSSH 6.6.1p1 Ubuntu 2ubuntu2.13
+Apache httpd 2.4.7 (Ubuntu)
+
+Nmap también presentó información asociada a un sistema Linux a partir de los servicios identificados. 
+
+ 
+1.	Respuesta en nmap
+5.2.	Detección ligera de versiones
+Posteriormente se utilizó:
+
+nmap -sV --version-light -p 22,80 scanme.nmap.org
+
+El objetivo fue realizar una detección de versiones con una intensidad menor y enfocada únicamente en los puertos 22 y 80.
+
+Se obtuvieron nuevamente los siguientes resultados:
+
+Puerto 22/tcp: OpenSSH 6.6.1p1 Ubuntu.
+Puerto 80/tcp: Apache httpd 2.4.7 Ubuntu.
+
+La prueba demostró que una detección de menor intensidad puede seguir proporcionando información relevante cuando se conocen previamente los puertos que se desean analizar.
+ 
+2.	 Detección ligera de versiones sobre los puertos 22 y 80.
+
+5.3.	Enumeración de la aplicación HTTP
+Para obtener información adicional de la aplicación disponible sobre el puerto 80 se ejecutó:
+
+nmap -sC --script=http-title -p 80 scanme.nmap.org
+
+El script NSE identificó el título de la aplicación web:
+
+Go ahead and ScanMe!
+
+Este resultado permitió comprobar que los scripts NSE pueden complementar un escaneo convencional, obteniendo información específica de los servicios identificados.
+ 
+3.	 Ejecución del script NSE http-title.
+
+5.4.	Análisis de encabezados HTTP
+Se utilizó el siguiente comando:
+
+nmap --script http-headers -p 80 scanme.nmap.org
+
+Entre la información obtenida se observaron los siguientes encabezados:
+
+Server: Apache/2.4.7 (Ubuntu)
+Accept-Ranges: bytes
+Vary: Accept-Encoding
+Connection: close
+Content-Type: text/html
+
+El encabezado Server confirmó nuevamente la utilización de Apache 2.4.7 sobre Ubuntu.
+
+Este tipo de enumeración resulta útil porque determinados encabezados HTTP pueden proporcionar información sobre las tecnologías utilizadas por un servidor.
+
+ 
+4.	Encabezados HTTP obtenidos mediante http-headers.
+5.5.	Identificación de métodos HTTP
+Para identificar los métodos HTTP disponibles se ejecutó:
+
+nmap --script http-methods -p 80 scanme.nmap.org
+
+El resultado indicó los siguientes métodos soportados:
+
+OPTIONS
+GET
+HEAD
+POST
+
+La prueba permitió conocer las operaciones HTTP aceptadas por el servidor, ampliando la información obtenida durante la enumeración del servicio web.
+
+La disponibilidad de estos métodos por sí sola no representa una vulnerabilidad; su relevancia depende de la aplicación y de cómo se encuentren implementados.
+
+ 
+5.	Métodos HTTP identificados mediante http-methods.
+
+5.6.	Enumeración del servicio SSH
+Para obtener información adicional sobre el servicio SSH se utilizó:
+
+nmap --script ssh-hostkey -p 22 scanme.nmap.org
+
+Nmap permitió identificar diferentes tipos de claves públicas utilizadas por el servidor:
+
+DSA – 1024 bits
+RSA – 2048 bits
+ECDSA – 256 bits
+ED25519 – 256 bits
+
+También se obtuvieron las respectivas huellas digitales o fingerprints.
+
+Esta información demuestra cómo NSE permite enumerar características específicas de un servicio sin necesidad de realizar autenticación sobre este.
+ 
+6.	 Enumeración de claves públicas y fingerprints SSH.
+5.7.	Control de reintentos
+Se ejecutó:
+
+nmap --max-retries 2 scanme.nmap.org
+
+Esta opción limita el número de reintentos realizados por Nmap ante la ausencia de respuesta.
+
+El escaneo identificó:
+
+22/tcp – SSH
+80/tcp – HTTP
+9929/tcp – nping-echo
+31337/tcp – Elite
+
+La prueba permitió comprobar cómo los parámetros de temporización y reintentos pueden modificar el comportamiento del escaneo manteniendo la capacidad de identificar servicios accesibles.
+
+ 
+7.	Escaneo con un máximo de dos reintentos.
+5.8.	Escaneo sin descubrimiento previo
+Se utilizó:
+
+nmap -Pn -p 22,80 scanme.nmap.org
+
+La opción -Pn indicó a Nmap que tratara el objetivo como activo, omitiendo la fase normal de descubrimiento del host.
+
+Los resultados fueron:
+
+22/tcp open ssh
+80/tcp open http
+
+Esta técnica resulta especialmente útil en escenarios donde un equipo puede estar activo, pero no responde a determinadas pruebas utilizadas durante la fase de descubrimiento.
+
+ 
+8.	Escaneo de puertos con la opción -Pn.
+
+5.9.	 Análisis de la razón del estado de los puertos
+Para comprender por qué Nmap clasificó los puertos como abiertos se utilizó:
+
+nmap --reason -p 22,80 scanme.nmap.org
+
+Nmap mostró:
+
+22/tcp open ssh   syn-ack ttl 46
+80/tcp open http  syn-ack ttl 46
+
+La respuesta SYN-ACK permitió determinar que ambos puertos se encontraban abiertos.
+
+Esta opción facilita la interpretación técnica de los resultados al mostrar la respuesta recibida que llevó a Nmap a asignar un determinado estado.
+
+ 
+9.	Razón técnica del estado open para los puertos 22 y 80.
+
+5.10.	Visualización exclusiva de puertos abiertos
+
+Finalmente se ejecutó:
+
+nmap --open scanme.nmap.org
+
+La opción permitió concentrar la salida en los puertos identificados como abiertos:
+
+22/tcp – SSH
+80/tcp – HTTP
+9929/tcp – nping-echo
+31337/tcp – Elite
+
+La opción --open facilita la lectura de resultados cuando el interés principal se encuentra en los servicios accesibles.
+ 
+10.	Resultado filtrado para mostrar únicamente puertos abiertos.
+
+
+
+
+
+
+
+
+
+
+
+
+
+6.	Resultados encontrados
+#	COMANDO UTILIZADO	OBJETIVO 	RESULTADOS CLAVE	ANÁLISIS / OBSERVACIONES 
+1	nmap -sV scanme.nmap.org	Identificar puertos abiertos, servicios y versiones disponibles.	4 puertos abiertos: 22/SSH, 80/HTTP, 9929/nping-echo y 31337/tcpwrapped. Se detectó OpenSSH 6.6.1p1 y Apache 2.4.7 Ubuntu.	-sV aporta más información que un escaneo básico, ya que permite conocer los servicios y las versiones que se encuentran expuestas.
+2	nmap -sV --version-light -p 22,80 scanme.nmap.org	Detectar versiones de SSH y HTTP utilizando una exploración de menor intensidad.	22/tcp: OpenSSH 6.6.1p1 Ubuntu 2ubuntu2.13. 80/tcp: Apache httpd 2.4.7 Ubuntu. Nmap también indicó Linux.	--version-light logró identificar correctamente las versiones de los dos servicios usando una detección menos intensa.
+3	nmap -sC --script=http-title -p 80 scanme.nmap.org	Obtener información adicional de la aplicación web, específicamente el título de la página.	Puerto 80/tcp open http. El script identificó el título: “Go ahead and ScanMe!”.	Los scripts NSE permiten ampliar la enumeración de un servicio. En este caso se obtuvo información directamente de la aplicación web.
+4	nmap --script http-headers -p 80 scanme.nmap.org	Obtener los encabezados HTTP enviados por el servidor web.	Se identificó Server: Apache/2.4.7 (Ubuntu), Content-Type: text/html, Connection: close, Accept-Ranges: bytes y otros encabezados.	Los encabezados HTTP pueden revelar información técnica del servidor, incluyendo software y versión utilizada.
+5	nmap --script http-methods -p 80 scanme.nmap.org	Identificar los métodos HTTP soportados por el servidor.	El servidor indicó los métodos OPTIONS, GET, HEAD y POST.	El análisis permitió conocer qué operaciones HTTP acepta la aplicación y ampliar la información del servicio web.
+6	nmap --script ssh-hostkey -p 22 scanme.nmap.org	Obtener información de las claves públicas utilizadas por el servicio SSH.	Se identificaron claves DSA 1024, RSA 2048, ECDSA 256 y ED25519 256, junto con sus fingerprints.	El script permitió enumerar las claves públicas y huellas digitales SSH sin autenticarse en el servidor.
+7	nmap --max-retries 2 scanme.nmap.org	Limitar la cantidad de reintentos durante el escaneo y observar los servicios accesibles.	4 puertos abiertos: 22/ssh, 80/http, 9929/nping-echo y 31337/Elite. 996 puertos aparecieron cerrados. Tiempo: 8.13 s.	Limitar los reintentos puede agilizar el reconocimiento. En este caso se mantuvieron visibles los cuatro puertos abiertos.
+8	nmap -Pn -p 22,80 scanme.nmap.org	Realizar el escaneo asumiendo que el host está activo y omitiendo el descubrimiento previo.	22/tcp open ssh y 80/tcp open http. Tiempo: 6.25 s.	-Pn permite realizar directamente el escaneo de puertos aunque el objetivo no responda a las pruebas normales de descubrimiento.
+9	nmap --reason -p 22,80 scanme.nmap.org	Conocer por qué Nmap determinó que los puertos se encontraban abiertos.	22/tcp open ssh – syn-ack ttl 46 y 80/tcp open http – syn-ack ttl 46.	Nmap marcó ambos puertos como abiertos porque recibió respuestas SYN-ACK, permitiendo comprender cómo se determina su estado.
+10	nmap --open scanme.nmap.org	Mostrar solamente los puertos que fueron identificados como abiertos.	Se mostraron 22/ssh, 80/http, 9929/nping-echo y 31337/Elite. Tiempo: 8.82 s.	--open simplifica la salida porque concentra el resultado únicamente en los servicios accesibles y evita mostrar los puertos cerrados.
+
+
+7.	Análisis general
+Los diferentes escaneos realizados permitieron comprobar que Nmap puede utilizarse de manera progresiva: inicialmente para descubrir puertos y posteriormente para profundizar en los servicios encontrados.
+
+Los puertos 22/tcp y 80/tcp fueron los resultados más consistentes a lo largo de las diferentes pruebas. La detección de versiones permitió asociarlos a OpenSSH y Apache respectivamente.
+
+También se observó que diferentes comandos pueden presentar información distinta para un mismo puerto. Por ejemplo, el puerto 31337/tcp fue mostrado como tcpwrapped durante la detección de versiones Esto ocurre porque un nombre de servicio asociado a un número de puerto no necesariamente confirma qué aplicación se encuentra ejecutándose realmente, la identificación mediante sondas de versión proporciona un contexto adicional.
++
+8.	Conclusiones
+La actividad permitió comprender que un proceso de reconocimiento no consiste únicamente en determinar si un puerto se encuentra abierto, sino en correlacionar diferentes resultados para obtener una visión más completa del objetivo.
+
+Nmap permitió identificar servicios, versiones y características específicas de las aplicaciones disponibles mediante diferentes modalidades de escaneo y scripts NSE.
+
+La opción -sV resultó especialmente útil debido a que permitió obtener información sobre las tecnologías utilizadas por los servicios encontrados. De igual manera, los scripts NSE demostraron ser una herramienta importante para profundizar en la enumeración de servicios específicos.
+
+Finalmente, la práctica permitió evidenciar la importancia de interpretar los resultados y no asumir que el nombre asignado a un puerto representa necesariamente el software real que se encuentra ejecutándose.
+
